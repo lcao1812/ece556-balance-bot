@@ -172,3 +172,15 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+*.pdf
+*.pptx
+./spkeras
+*.keras
+*.h5
+*.hdf5
+*.pkl
+*.python
+*.csv
+*.pth
+.DS_Store
