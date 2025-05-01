@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
@@ -37,6 +38,8 @@ train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
 # Define the spiking neural network
+
+
 class SNN(nn.Module):
     def __init__(self):
         super(SNN, self).__init__()
@@ -59,13 +62,17 @@ class SNN(nn.Module):
         out = self.fc3(spk2)
         return out
 
+
 # Initialize the model, loss function, and optimizer
 model = SNN()
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
+
 # Training loop
-num_epochs = 100
+num_epochs = 300
+test_losses = []
+
 for epoch in range(num_epochs):
     model.train()
     for batch_X, batch_y in train_loader:
@@ -76,6 +83,23 @@ for epoch in range(num_epochs):
         optimizer.step()
 
     print(f"Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}")
+
+    # Evaluate the model on the test set
+    model.eval()
+    with torch.no_grad():
+        test_outputs = model(X_test_tensor)
+        test_loss = criterion(test_outputs, y_test_tensor)
+        test_losses.append(test_loss.item())
+        print(f"Test Loss: {test_loss.item()}")
+
+# Plot test loss over time
+plt.plot(range(1, num_epochs + 1), test_losses, label='Test Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Test Loss Over Time')
+plt.legend()
+plt.savefig('../Report/snn_test_loss.png')
+
 
 # Save the trained model weights
 torch.save(model.state_dict(), 'snn_model_weights.pth')

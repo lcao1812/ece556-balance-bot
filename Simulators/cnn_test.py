@@ -156,7 +156,7 @@ while not done:
     for event in pygame.event.get():
         keys = pygame.key.get_pressed()
     if keys[pgl.K_s]:
-        theta = 0.05
+        theta = 0.3
         omega = 0
         alpha = 0
         velocity = 0

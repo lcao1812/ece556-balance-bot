@@ -184,3 +184,5 @@ cython_debug/
 *.csv
 *.pth
 .DS_Store
+
+/Report

@@ -1,18 +1,19 @@
+import matplotlib.pyplot as plt
+from keras.api.saving import register_keras_serializable
+import joblib
+from keras.api.callbacks import EarlyStopping
+from keras.api.layers import Dense, Conv1D, Flatten, Dropout
+from keras import Sequential
+import tensorflow as tf
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+import pandas as pd
 import sys
 import os
 
 # Adjust the Python path to include the spkeras module
 currentpath = os.path.dirname(os.path.realpath(__file__))
 
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv1D, Flatten, Dropout
-from tensorflow.keras.callbacks import EarlyStopping
-import joblib
-from tensorflow.keras.saving import register_keras_serializable
 
 # Load the dataset
 data = pd.read_csv('training_data.csv')
@@ -48,10 +49,13 @@ y_test = y_test.astype('float32')
 # Register the custom loss function
 @register_keras_serializable()
 def custom_loss(y_true, y_pred):
-    forward_penalty = tf.reduce_mean(tf.square(y_pred))  # Penalize large acceleration values
-    cumulative_displacement_penalty = tf.reduce_mean(tf.square(X_train[:, 4]))  # Penalize x_position displacement
+    # Penalize large acceleration values
+    forward_penalty = tf.reduce_mean(tf.square(y_pred))
+    cumulative_displacement_penalty = tf.reduce_mean(
+        tf.square(X_train[:, 4]))  # Penalize x_position displacement
     mse_loss = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
-    return mse_loss + 0.1 * forward_penalty + 0.3 * cumulative_displacement_penalty  # Combine MSE with penalties
+    # Combine MSE with penalties
+    return mse_loss + 0.1 * forward_penalty + 0.3 * cumulative_displacement_penalty
 
 
 # Build the CNN model
@@ -90,7 +94,8 @@ history = model.fit(
 testing_data_df = pd.read_csv('testing_data.csv')
 
 # Extract features and labels
-testing_data = testing_data_df[['theta', 'omega', 'velocity', 'targetvelocity', 'x_position']].values
+testing_data = testing_data_df[['theta', 'omega',
+                                'velocity', 'targetvelocity', 'x_position']].values
 labels = testing_data_df['acc'].values
 
 # Preprocess the testing data
@@ -98,11 +103,11 @@ labels = testing_data_df['acc'].values
 testing_data = scaler.transform(testing_data)
 
 # Reshape the data for the model
-testing_data = testing_data.reshape((testing_data.shape[0], testing_data.shape[1], 1))
+testing_data = testing_data.reshape(
+    (testing_data.shape[0], testing_data.shape[1], 1))
 
 # Evaluate the model on the testing data
 loss, mae = model.evaluate(testing_data, labels, verbose=2)
 
 print(f"Test Loss: {loss}")
 print(f"Test MAE: {mae}")
-

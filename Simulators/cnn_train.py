@@ -1,3 +1,13 @@
+import matplotlib.pyplot as plt
+from keras.api.saving import register_keras_serializable
+import joblib
+from keras.api.callbacks import EarlyStopping
+from keras.api.layers import Dense, Conv1D, Flatten, Dropout
+from keras import Sequential
+import tensorflow as tf
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+import pandas as pd
 import sys
 import os
 
@@ -5,15 +15,6 @@ import os
 currentpath = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(currentpath, '../spkeras'))
 
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv1D, Flatten, Dropout
-from tensorflow.keras.callbacks import EarlyStopping
-import joblib
-from tensorflow.keras.saving import register_keras_serializable
 
 # Load the dataset
 data = pd.read_csv('training_data.csv')
@@ -49,10 +50,13 @@ y_test = y_test.astype('float32')
 # Register the custom loss function
 @register_keras_serializable()
 def custom_loss(y_true, y_pred):
-    forward_penalty = tf.reduce_mean(tf.square(y_pred))  # Penalize large acceleration values
-    cumulative_displacement_penalty = tf.reduce_mean(tf.square(X_train[:, 4]))  # Penalize x_position displacement
+    # Penalize large acceleration values
+    forward_penalty = tf.reduce_mean(tf.square(y_pred))
+    cumulative_displacement_penalty = tf.reduce_mean(
+        tf.square(X_train[:, 4]))  # Penalize x_position displacement
     mse_loss = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
-    return mse_loss + 0.1 * forward_penalty + 0.3 * cumulative_displacement_penalty  # Combine MSE with penalties
+    # Combine MSE with penalties
+    return mse_loss + 0.1 * forward_penalty + 0.3 * cumulative_displacement_penalty
 
 
 # Build the CNN model
@@ -89,3 +93,20 @@ print(f'Test Loss: {loss}, Test MAE: {mae}')
 # Save the model in the new format
 model.save('cnn.keras')
 print('Model saved as cnn.keras')
+
+# Plot the training and validation loss
+plt.figure(figsize=(10, 6))
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.axhline(y=loss, color='r', linestyle='--', label='Test Loss')
+plt.title('Loss Over Epochs')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.grid(True)
+# Save the plot to the specified directory
+output_dir = os.path.join(currentpath, '../Report')
+os.makedirs(output_dir, exist_ok=True)
+plot_path = os.path.join(output_dir, 'training_validation_loss.png')
+plt.savefig(plot_path)
+print(f'Plot saved at {plot_path}')
